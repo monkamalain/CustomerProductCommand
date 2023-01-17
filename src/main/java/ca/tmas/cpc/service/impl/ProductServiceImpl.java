@@ -8,8 +8,6 @@ import ca.tmas.cpc.service.ProductService;
 import ca.tmas.cpc.utils.ProductStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.Provider;
-import org.modelmapper.TypeMap;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,15 +42,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional
     @Override
-    synchronized public ProductDto createProduct(ProductDto productDto) throws GlobalFailedException {
+    public ProductDto createProduct(ProductDto productDto) throws GlobalFailedException {
         Product pd;
         String nextRef;
         if(productRepository.findAllRefProduct().isEmpty()) {
-            nextRef = REFPD + String.valueOf(Long.toHexString(Long.MAX_VALUE % CSTPD));
+            nextRef = REFPD + Long.toHexString(Long.MAX_VALUE % CSTPD);
         } else {
             String lastRef = productRepository.findAllRefProduct().stream().map(x -> x.substring(4)).collect(Collectors.toSet()).stream().max(String::compareTo).get();
             Long lastValue = Long.valueOf(lastRef, 16) + 1;
-            nextRef = REFPD + String.valueOf(Long.toHexString(lastValue));
+            nextRef = REFPD + Long.toHexString(lastValue);
         }
         try {
             pd = modelMapper.map(productDto, Product.class);
@@ -66,14 +64,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    synchronized public Optional<ProductDto> getProductByRef(String ref) {
+    public Optional<ProductDto> getProductByRef(String ref) {
         Optional<Product> pd = productRepository.findProductByRef(ref);
         return Optional.ofNullable(modelMapper.map(pd, ProductDto.class));
     }
 
     @Transactional
     @Override
-    synchronized public ProductDto patiallyUpdateProduct(String ref, ProductDto productDto) {
+    public ProductDto patiallyUpdateProduct(String ref, ProductDto productDto) {
         if(productDto != null) {
             Product currentProduct = modelMapper.map(productDto, Product.class);
             Product dbProduct = productRepository.findProductByRef(productDto.getRefProduct()).get();
@@ -88,7 +86,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional
     @Override
-    synchronized public ProductDto totalyUpdateProduct(String ref, ProductDto productDto) {
+    public ProductDto totalyUpdateProduct(String ref, ProductDto productDto) {
         if(productDto != null) {
             Product currentProduct = modelMapper.map(productDto, Product.class);
             currentProduct.setId(productRepository.findProductByRef(ref).get().getId());
@@ -101,7 +99,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional
     @Override
-    synchronized public Optional<ProductDto> deleteProductByRef(String ref) {
+    public Optional<ProductDto> deleteProductByRef(String ref) {
         if((productRepository.findProductByRef(ref).isPresent()) && (productRepository.findProductByRef(ref).get().getStateProduct().equals(ProductStatus.AVAILABLE.name()))) {
             Product pd = productRepository.findProductByRef(ref).get();
             pd.setDateSaleProduct(LocalDateTime.parse(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
@@ -112,7 +110,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    synchronized public List<ProductDto> getAllProductsByStateAvailable(String state) {
+    public List<ProductDto> getAllProductsByStateAvailable(String state) {
         if (productRepository.countAllProductByStateAvailable(state) >= 1L) {
             List<ProductDto> productDtoList = new ArrayList<>();
             productRepository.findAllProductByStateAvailable(state).forEach(pd -> productDtoList.add(modelMapper.map(pd, ProductDto.class)));
@@ -123,7 +121,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    synchronized public List<ProductDto> getAllProductsByStateUnavailable(String state) {
+    public List<ProductDto> getAllProductsByStateUnavailable(String state) {
         if (productRepository.countAllProductByStateUnavailable(state) >= 1L) {
             List<ProductDto> productDtoList = new ArrayList<>();
             productRepository.findAllProductByStateUnavailable(state).forEach(pd -> productDtoList.add(modelMapper.map(pd, ProductDto.class)));
@@ -134,12 +132,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    synchronized public Set<String> getAllRefProduct() {
+    public Set<String> getAllRefProduct() {
         return (!productRepository.findAllRefProduct().isEmpty())? productRepository.findAllRefProduct(): Collections.emptySet();
     }
 
     @Override
-    synchronized public List<ProductDto> getAllProduct() {
+    public List<ProductDto> getAllProduct() {
         if(productRepository.findAll().isEmpty()) {
             return Collections.emptyList();
         } else {
@@ -150,7 +148,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    synchronized public List<ProductDto> getProductByPrice(double price) {
+    public List<ProductDto> getProductByPrice(double price) {
         if (productRepository.findProductByPrice(price).isEmpty()) {
             return Collections.emptyList();
         } else {
@@ -161,7 +159,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    synchronized public List<ProductDto> getProductByPriceBetween(double price1, double price2) {
+    public List<ProductDto> getProductByPriceBetween(double price1, double price2) {
         if(productRepository.findProductByPriceBetween(price1, price2).isEmpty()) {
             return Collections.emptyList();
         } else {
@@ -172,7 +170,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    synchronized public List<ProductDto> getProductByCreationDate(String creationDate) {
+    public List<ProductDto> getProductByCreationDate(String creationDate) {
         LocalDateTime creationDateConvertToDateTime = LocalDateTime.parse(creationDate);
         if(productRepository.findProductByCreationDate(creationDateConvertToDateTime).isEmpty()) {
             return Collections.emptyList();
@@ -184,7 +182,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    synchronized public List<ProductDto> getProductBySaleDate(String saleDate) {
+    public List<ProductDto> getProductBySaleDate(String saleDate) {
         LocalDateTime saleDateConvertToDateTime = LocalDateTime.parse(saleDate);
         if(productRepository.findProductBySaleDate(saleDateConvertToDateTime).isEmpty()) {
             return Collections.emptyList();
@@ -196,7 +194,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    synchronized public double getProductBySaleDateAndPrice(String saleDate1, String saleDate2) {
+    public double getProductBySaleDateAndPrice(String saleDate1, String saleDate2) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:00");
         DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:59");
         LocalDateTime saleDateConvertToDateTime1 = LocalDateTime.parse(saleDate1, formatter);
