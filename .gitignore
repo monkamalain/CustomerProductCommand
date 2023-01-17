@@ -1,0 +1,4 @@
+.idea
+*.iml
+target/
+/LOG_PATH_IS_UNDEFINED
