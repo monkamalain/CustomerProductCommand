@@ -16,7 +16,7 @@ spring:
     datasource:
         driver-class-name: com.mysql.jdbc.Driver
         password:
-        url: jdbc:mysql://localhost:3306/db_productcommandcustomer?useSSL=false
+        url: jdbc:mysql://localhost:3306/db_supermarche?useSSL=false
         username: root
     jpa:
         show-sql: true
